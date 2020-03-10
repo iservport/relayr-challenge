@@ -9,8 +9,8 @@ case class Elevator(
                      tripLoad: Queue[Trip] = Queue(),
                      elevatorType: ElevatorType = StandardType) {
 
-  def pickup(load: Trip): Either[ElevatorError, Elevator] =
-    pickup(tripLoad.enqueue(load))
+  def pickup(trip: Trip): Either[ElevatorError, Elevator] =
+    pickup(tripLoad.enqueue(trip))
 
   def pickup(nextTripLoad: Queue[Trip]): Either[ElevatorError, Elevator] =
     validateSafetyLimits(nextTripLoad)

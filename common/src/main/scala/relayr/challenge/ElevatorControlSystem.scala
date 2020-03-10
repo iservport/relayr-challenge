@@ -6,7 +6,7 @@ trait ElevatorControlSystem {
 
   def get(id: Int): Option[Elevator]
 
-  def update(elevator: Elevator)
+  def update(elevator: Elevator): Unit
 
   def step(): Unit
 

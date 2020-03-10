@@ -9,7 +9,10 @@ import scala.collection.mutable
 
 class ElevatorControlSystemActor extends Actor with ActorLogging {
 
+  var elevators: mutable.Set[Elevator] = mutable.Set()
+
   override def receive: Receive = {
-    case _ => ()
+    case Update(elevator) =>
+
   }
 }

@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ScalaCompilerConfiguration">
-    <profile name="sbt 1" modules="actor,common,relayr-challenge,simmple,simple" />
+    <profile name="sbt 1" modules="simmple" />
+    <profile name="sbt 2" modules="actor,common,relayr-challenge,simple">
+      <parameters>
+        <parameter value="-Ymacro-annotations" />
+      </parameters>
+    </profile>
+    <profile name="sbt 3" modules="zio">
+      <parameters>
+        <parameter value="-Ymacro-annotations" />
+        <parameter value="-Ymacro-annotations" />
+      </parameters>
+    </profile>
   </component>
 </project>
