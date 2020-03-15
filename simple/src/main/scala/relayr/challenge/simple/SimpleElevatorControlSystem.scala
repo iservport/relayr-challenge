@@ -1,25 +1,37 @@
 package relayr.challenge.simple
 
 import org.slf4j.{Logger, LoggerFactory}
-import relayr.challenge.model.{AbstractElevatorSystem, Elevator, ElevatorError, Trip}
+import relayr.challenge.model.{Elevator, ElevatorError, ElevatorErrorData, Trip}
 
 import scala.annotation.tailrec
+import scala.collection.immutable.Queue
 import scala.collection.mutable
+import scala.collection.mutable.Iterable
 
-class SimpleElevatorControlSystem extends AbstractElevatorSystem {
+class SimpleElevatorControlSystem {
 
   val logger: Logger = LoggerFactory.getLogger(classOf[SimpleElevatorControlSystem])
 
-  override var elevators: mutable.Set[Elevator] = mutable.Set(Elevator())
+  var elevators: mutable.Set[Elevator] = mutable.Set(Elevator())
+  var requests: Queue[Trip] = Queue()
 
-  override def step(): Unit = elevators.foreach{ elevator =>
+  def get(id: Int): Option[Elevator] = elevators.find(_.id == id)
+
+  def status(): Iterable[Elevator] = elevators
+
+  def update(elevator: Elevator): Iterable[Elevator] = {
+    val updated = elevators.find(_.id == elevator.id)
+    elevators.+=(elevator)
+  }
+
+  def step(): Unit = elevators.foreach{ elevator =>
     elevator.move
   }
 
   def move(runnableElevator: Either[ElevatorError, Elevator]): Either[ElevatorError, Elevator] =
     runnableElevator.map(elevator => elevator.move)
 
-  override def pickup(trip: Trip): Unit =
+  def pickup(trip: Trip): Unit =
     recurse(trip, elevators.toList.sortBy(elevator => Math.abs(elevator.floor - trip.source))) match {
       case Some(closest) => elevators = elevators + closest
       case None => logger.debug(s"All elevators refused trip ${trip}")
@@ -32,7 +44,8 @@ class SimpleElevatorControlSystem extends AbstractElevatorSystem {
       case Some(Right(elevator)) => Some(elevator)
       case error =>
         error.foreach {
-          case Left(e) => logger.debug(s"Elevator id = ${e.elevator.id} refused trip ${e.trip} with error ${e.toString}")
+          case Left(e: ElevatorErrorData) => logger.debug(s"Elevator id = ${e.elevator.id} refused trip ${e.trip} with error ${e.toString}")
+          case e => logger.debug(s"Recursion error $e")
         }
         recurse(trip, closest.tail)
     }

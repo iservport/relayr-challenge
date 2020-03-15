@@ -19,12 +19,6 @@ lazy val simple = (project in file("simple"))
     libraryDependencies ++= Dependencies.common ++ Dependencies.test
   )
 
-lazy val actor = (project in file("actor"))
-  .dependsOn(common)
-  .settings(
-    libraryDependencies ++= Dependencies.common ++ Dependencies.actor ++ Dependencies.test
-  )
-
 lazy val zio = (project in file("zio"))
   .dependsOn(common)
   .settings(

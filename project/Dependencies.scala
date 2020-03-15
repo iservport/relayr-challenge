@@ -12,9 +12,7 @@ object Dependencies {
   )
 
   val zio = Seq(
-    "dev.zio"                    %% "zio"              % "1.0.0-RC18",
-    "dev.zio"                    %% "zio-macros-core"  % "0.6.2",
-    "dev.zio"                    %% "zio-macros-test"  % "0.6.2"
+    "dev.zio"                    %% "zio"              % "1.0.0-RC18-2"
   )
 
   val test = Seq(
@@ -23,7 +21,7 @@ object Dependencies {
     )
 
   val testZio = Seq(
-    "dev.zio"                   %% "zio-test"          % "1.0.0-RC18" % "test",
-    "dev.zio"                   %% "zio-test-sbt"      % "1.0.0-RC18" % "test"
+    "dev.zio"                   %% "zio-test"          % "1.0.0-RC18-2" % "test",
+    "dev.zio"                   %% "zio-test-sbt"      % "1.0.0-RC18-2" % "test"
   )
 }

@@ -14,22 +14,30 @@ class ElevatorControlSystemSpec extends WordSpec with Matchers with EitherValues
 
     "an elevator is called for a single trip" should {
 
-      val singleTrip = Trip(0,3)
+      val singleTrip = Trip(1,3)
       val elevator1AtGround = ecs.get(1).map(_.pickup(singleTrip)).get
+
+      "have stops for destination" in {
+        elevator1AtGround.right.value.stops should contain(3)
+      }
+
+      "have stops for source" in {
+        elevator1AtGround.right.value.stops should contain(1)
+      }
 
       "go to the destination floor step by step and stop" in {
 
         val elevator1At1 = ecs.move(elevator1AtGround)
         elevator1At1.right.value.floor should be (1)
-        elevator1At1.right.value.tripLoad should contain (singleTrip)
+        elevator1At1.right.value.content should contain (singleTrip)
 
         val elevator1At2 = ecs.move(elevator1At1)
         elevator1At2.right.value.floor should be (2)
-        elevator1At2.right.value.tripLoad should contain (singleTrip)
+        elevator1At2.right.value.content should contain (singleTrip)
 
         val elevator1At3 = ecs.move(elevator1At2)
         elevator1At3.right.value.floor should be (3)
-        elevator1At3.right.value.tripLoad shouldBe empty
+        elevator1At3.right.value.content shouldBe empty
 
         val elevator1Stopped = ecs.move(elevator1At3)
         elevator1Stopped.right.value.floor should be (3)
@@ -47,17 +55,17 @@ class ElevatorControlSystemSpec extends WordSpec with Matchers with EitherValues
 
         val elevator1At1 = ecs.move(elevator1AtGround)
         elevator1At1.right.value.floor should be (1)
-        elevator1At1.right.value.tripLoad should contain (tripOne)
-        elevator1At1.right.value.tripLoad should contain (tripTwo)
+        elevator1At1.right.value.content should contain (tripOne)
+        elevator1At1.right.value.content should contain (tripTwo)
 
         val elevator1At2 = ecs.move(elevator1At1)
         elevator1At2.right.value.floor should be (2)
-        elevator1At2.right.value.tripLoad should contain (tripOne)
-        elevator1At2.right.value.tripLoad should not contain (tripTwo)
+        elevator1At2.right.value.content should contain (tripOne)
+        elevator1At2.right.value.content should not contain (tripTwo)
 
         val elevator1At3 = ecs.move(elevator1At2)
         elevator1At3.right.value.floor should be (3)
-        elevator1At3.right.value.tripLoad shouldBe empty
+        elevator1At3.right.value.content shouldBe empty
 
         val elevator1Stopped = ecs.move(elevator1At3)
         elevator1Stopped.right.value.floor should be (3)
@@ -75,17 +83,17 @@ class ElevatorControlSystemSpec extends WordSpec with Matchers with EitherValues
 
         val elevator1At1 = ecs.move(elevator1AtGround)
         elevator1At1.right.value.floor should be (1)
-        elevator1At1.right.value.tripLoad should contain (tripOne)
+        elevator1At1.right.value.content should contain (tripOne)
 
         val elevator1At2 = ecs.move(elevator1At1)
         elevator1At2.right.value.floor should be (2)
-        elevator1At2.right.value.tripLoad should contain (tripOne)
+        elevator1At2.right.value.content should contain (tripOne)
 
         val elevator1At2WithNewCall = elevator1At2.flatMap(_.pickup(tripTwo))
 
         val elevator1At3 = ecs.move(elevator1At2WithNewCall)
         elevator1At3.right.value.floor should be (3)
-        elevator1At3.right.value.tripLoad shouldBe empty
+        elevator1At3.right.value.content shouldBe empty
 
         val elevator1Stopped = ecs.move(elevator1At3)
         elevator1Stopped.right.value.floor should be (3)
@@ -103,25 +111,25 @@ class ElevatorControlSystemSpec extends WordSpec with Matchers with EitherValues
 
         val elevator1At1 = ecs.move(elevator1AtGround)
         elevator1At1.right.value.floor should be (1)
-        elevator1At1.right.value.tripLoad should contain (tripOne)
+        elevator1At1.right.value.content should contain (tripOne)
 
         val elevator1At2 = ecs.move(elevator1At1)
         elevator1At2.right.value.floor should be (2)
-        elevator1At2.right.value.tripLoad should contain (tripOne)
+        elevator1At2.right.value.content should contain (tripOne)
 
         val elevator1At2WithNewCall = elevator1At2.flatMap(_.pickup(tripTwo))
 
         val elevator1At3 = ecs.move(elevator1At2WithNewCall)
         elevator1At3.right.value.floor should be (3)
-        elevator1At3.right.value.tripLoad should contain (tripTwo)
+        elevator1At3.right.value.content should contain (tripTwo)
 
         val elevator1At2Desc = ecs.move(elevator1At3)
         elevator1At2Desc.right.value.floor should be (2)
-        elevator1At2Desc.right.value.tripLoad should contain (tripTwo)
+        elevator1At2Desc.right.value.content should contain (tripTwo)
 
         val elevator1At1Desc = ecs.move(elevator1At2Desc)
         elevator1At1Desc.right.value.floor should be (1)
-        elevator1At1Desc.right.value.tripLoad shouldBe empty
+        elevator1At1Desc.right.value.content shouldBe empty
 
         val elevator1Stopped = ecs.move(elevator1At1Desc)
         elevator1Stopped.right.value.floor should be (1)

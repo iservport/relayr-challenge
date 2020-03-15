@@ -3,42 +3,61 @@ package relayr.challenge.model
 import scala.collection.immutable.Queue
 
 case class Elevator(
-                     floor: Int = 0,
+                     position: Float = 0.0f,
                      direction: Int = 0,
                      id: Int = 1,
-                     tripLoad: Queue[Trip] = Queue(),
+                     content: Queue[Trip] = Queue(),
                      elevatorType: ElevatorType = StandardType) {
 
+  val floor: Int = Math.floor(position).toInt
+
   def pickup(trip: Trip): Either[ElevatorError, Elevator] =
-    pickup(tripLoad.enqueue(trip))
+    pickup(content.enqueue(trip))
 
-  def pickup(nextTripLoad: Queue[Trip]): Either[ElevatorError, Elevator] =
-    validateSafetyLimits(nextTripLoad)
+  def pickup(nextContent: Queue[Trip]): Either[ElevatorError, Elevator] =
+    validateSafetyLimits(nextContent)
 
-  val stops: Seq[Int] = tripLoad.groupBy(_.destination).keys.toList
+  def distance(trip: Trip): Int = {
+    val relativeDistance = trip.source - floor
+    Math.abs {
+      if (relativeDistance.sign == direction) relativeDistance else relativeDistance+1000
+    }
+  }
 
-  val nextStop: Int = tripLoad.map(_.destination).headOption.getOrElse(floor)
+  val stops: Seq[Int] = content.groupBy(_.source).keys.toList ++ content.groupBy(_.destination).keys.toList
+
+  val nextStop: Int = content.map(_.destination).headOption.getOrElse(floor)
 
   def move: Elevator = {
-    val nextDirection: Int = (nextStop - floor).signum
-    val nextFloor: Int = floor + nextDirection
+    val nextDirection: Int = (nextStop - floor).sign
+    val willStop  = stops.nonEmpty && stops.contains(nextStop) // FIXME this is not guaranteed
+    val willStart = stops.nonEmpty && stops.contains(floor)
+    val accelerationMode = (willStart, willStop) match {
+      case (true, true)  => AccelerationStartAndStop
+      case (true, false) => AccelerationStart
+      case (false, true) => AccelerationStop
+      case _             => AccelerationTravel
+    }
+    val nextPosition = position + elevatorType.moveBy(1 * nextDirection, accelerationMode)
+    val nextFloor: Int = Math.ceil(nextPosition).toInt
     copy(
-      floor = nextFloor,
+      position = nextFloor,
       direction = nextDirection,
-      tripLoad = tripLoad.filterNot(_.destination == nextFloor)
+      content = content.filterNot(_.destination == nextFloor)
     )
   }
 
-  private def validateSafetyLimits(nextTripLoad: Queue[Trip]): Either[ElevatorError, Elevator] =
-    if (nextTripLoad.map(_.weight).sum > elevatorType.maxLoad) Left(MaximumWeightExceeded(this, nextTripLoad.last))
-    else if (nextTripLoad.length > elevatorType.capacity) Left(MaximumCapacityExceeded(this, nextTripLoad.last))
-    else Right(copy(tripLoad = nextTripLoad))
+  private def validateSafetyLimits(nextContent: Queue[Trip]): Either[ElevatorError, Elevator] =
+    if (nextContent.map(_.weight).sum > elevatorType.maxLoad) Left(MaximumWeightExceeded(this, nextContent.last))
+    else if (nextContent.length > elevatorType.capacity) Left(MaximumCapacityExceeded(this, nextContent.last))
+    else Right(copy(content = nextContent))
 
-  override def equals(o:Any): Boolean = o match {
-    case Elevator(_, _, oid, _, _) if oid == id=> true
-    case _ => false
+  val directionAsString: String = direction match {
+    case 1  => "moving upwards to"
+    case -1 => "moving downwards to"
+    case _  => "and stopped"
   }
 
-  override def hashCode: Int = (id).##
+  override def toString = s"Elevator $id is at floor $floor $directionAsString ${stops.mkString("["," ","]")}"
 
 }
